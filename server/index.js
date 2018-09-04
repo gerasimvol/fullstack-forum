@@ -23,8 +23,6 @@ app.get('/msgs', async (req, res) => {
 })
 
 app.post('/msgs', async (req, res) => {
-  console.log(req)
-
   try {
     await msgs.addMsg(req.body)
     const allMsgs = await msgs.getMsgs()

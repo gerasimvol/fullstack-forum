@@ -1,8 +1,6 @@
 <template>
   <div id="app">
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <router-link class="navbar-brand" :to="{ name: 'home' }">Message board</router-link>
-    </nav>
+    <h1>Forum</h1>
     <router-view />
   </div>
 </template>
@@ -12,3 +10,9 @@
     name: 'App'
   }
 </script>
+
+<style scoped>
+  #app {
+    padding: 15px;
+  }
+</style>

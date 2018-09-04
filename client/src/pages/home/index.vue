@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div class="page">
     <form class="form" @submit.prevent="onPostMsg" v-show="isFormVisible">
       <h3>Add message</h3>
       <div class="form-group">
@@ -8,35 +8,45 @@
       </div>
       <div class="form-group">
         <label for="imageURL">Image URL</label>
-        <input type="text" class="form-control" id="imageURL" v-model="newMsg.imageURL">
+        <input type="url" class="form-control" id="imageURL" v-model="newMsg.imageURL">
       </div>
       <div class="form-group">
         <label for="subject">Subject</label>
-        <input type="text" class="form-control" id="subject" v-model="newMsg.subject">
+        <input type="text" class="form-control" id="subject" v-model="newMsg.subject" required>
       </div>
       <div class="form-group">
         <label for="message">Message</label>
-        <textarea class="form-control" id="message" rows="3" v-model="newMsg.message"></textarea>
+        <textarea class="form-control" id="message" rows="3" v-model="newMsg.message" required></textarea>
       </div>
       <button type="submit" class="btn btn-primary">Fire!</button>
+
+      <div v-if="error" class="alert alert-danger">
+        <strong>Invalid post!</strong> {{ error }}
+      </div>
     </form>
 
-    <button class="btn btn-primary" @click="toggleFormVisibility">Show/hide form</button>
-
-    <ul class="list-unstyled posts">
-      <li
-        v-for="post in msgs"
-        :key="`post-${post._id}`"
-        class="media post"
-      >
-        <img class="mr-3 image" :src="post.imageURL" :alt="post.subject">
-        <div class="media-body">
-          <h4 class="mt-0 mb-1">{{ post.username }}</h4>
-          <h6 class="mt-0 mb-1">{{ post.subject }}</h6>
-          {{ post.message }}
-        </div>
-      </li>
-    </ul>
+    <div class="posts-wrapper">
+      <button class="btn btn-primary" @click="toggleFormVisibility">Show/hide form</button>
+      <div class="posts">
+        <ul class="list-unstyled">
+          <li
+            v-for="post in msgsReversed"
+            :key="`post-${post._id}`"
+            class="media post"
+          >
+            <img class="mr-3 image" :src="post.imageURL" :alt="post.subject">
+            <div class="media-body">
+              <h4 class="mt-0 mb-1">{{ post.username }}</h4>
+              <h6 class="mt-0 mb-1">{{ post.subject }}</h6>
+              {{ post.message }}
+              <div>
+                <small>{{ post.created }}</small>
+              </div>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -47,6 +57,7 @@
     name: 'home',
     data () {
       return {
+        error: '',
         isFormVisible: true,
         msgs: [],
         newMsg: {
@@ -55,6 +66,13 @@
           message: '',
           imageURL: ''
         }
+      }
+    },
+    computed: {
+      msgsReversed () {
+        const arrCopy = [...this.msgs]
+        arrCopy.reverse()
+        return arrCopy
       }
     },
     methods: {
@@ -68,17 +86,26 @@
       },
       async onPostMsg () {
         try {
-          const res = await fetch(API_URL, {
+          this.error = ''
+          let res = await fetch(API_URL, {
             method: 'POST',
             headers: {
-              'content-type': 'application/json'
+              'Content-Type': 'application/json'
             },
             body: JSON.stringify(this.newMsg)
           })
-          const updatedMsgs = await res.json()
-          this.newMsg.subject = ''
-          this.newMsg.message = ''
-          this.msgs = [...updatedMsgs]
+          res = await res.json()
+
+          if (res.details) {
+            // validation err
+            res.details.forEach(err => {
+              this.error += `${err.message}  `
+            })
+          } else {
+            this.error = ''
+            this.newMsg.message = ''
+            this.msgs = [...res]
+          }
         } catch (err) {
           console.err(err)
         }
@@ -91,13 +118,28 @@
 </script>
 
 <style scoped>
+  .page {
+    display: flex;
+    justify-content: space-between;
+  }
+
   .image {
     max-width: 100px;
   }
 
   .form {
-    max-width: 500px;
-    margin: 0 auto;
+    flex: 1;
+    max-width: 400px;
+    margin-right: 20px;
+  }
+
+  .posts {
+    height: 80vh;
+    overflow-y: scroll;
+  }
+
+  .posts-wrapper {
+    flex: 1;
   }
 
   .post {

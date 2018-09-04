@@ -22,7 +22,6 @@ function getMsgs () {
 function addMsg (msg) {
   if (!msg.username) {
     msg.username = "anonymous"
-    msg.imageURL = "https://avatars.mds.yandex.net/get-pdb/936467/b4a8fe16-20c1-43ae-8e5a-568d52db6152/orig"
   }
 
   if (!msg.imageURL) {
