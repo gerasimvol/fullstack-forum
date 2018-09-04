@@ -51,7 +51,8 @@
 </template>
 
 <script>
-  const API_URL = 'http://localhost:8081/msgs'
+  const API_URL = 'https://fullstack-forum.herokuapp.com/msgs'
+  // const API_URL = 'http://localhost:8081/msgs'
 
   export default {
     name: 'home',
