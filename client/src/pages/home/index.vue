@@ -18,7 +18,13 @@
         <label for="message">Message</label>
         <textarea class="form-control" id="message" rows="3" v-model="newMsg.message" required></textarea>
       </div>
-      <button type="submit" class="btn btn-primary">Fire!</button>
+      <button
+        type="submit"
+        class="btn btn-primary"
+        :disabled="isSubmitPostDisabled"
+      >
+        {{ isSubmitPostDisabled ? 'Posting...' : 'Fire!' }}
+      </button>
 
       <div v-if="error" class="alert alert-danger">
         <strong>Invalid post!</strong> {{ error }}
@@ -28,7 +34,7 @@
     <div class="posts-wrapper">
       <button class="btn btn-primary" @click="toggleFormVisibility">Show/hide form</button>
       <div class="posts">
-        <ul class="list-unstyled">
+        <ul class="list-unstyled" v-if="msgsReversed.length">
           <li
             v-for="post in msgsReversed"
             :key="`post-${post._id}`"
@@ -36,15 +42,16 @@
           >
             <img class="mr-3 image" :src="post.imageURL" :alt="post.subject">
             <div class="media-body">
-              <h4 class="mt-0 mb-1">{{ post.username }}</h4>
-              <h6 class="mt-0 mb-1">{{ post.subject }}</h6>
+              <p class="username">{{ post.username }}</p>
+              <p class="subject">{{ post.subject }}</p>
               {{ post.message }}
               <div>
-                <small>{{ post.created }}</small>
+                <small>{{ formatDate(post.created) }}</small>
               </div>
             </div>
           </li>
         </ul>
+        <div v-else>Loading posts...</div>
       </div>
     </div>
   </div>
@@ -60,6 +67,7 @@
       return {
         error: '',
         isFormVisible: true,
+        isSubmitPostDisabled: false,
         msgs: [],
         newMsg: {
           username: '',
@@ -77,6 +85,22 @@
       }
     },
     methods: {
+      formatDate (date) {
+        const dateObj = new Date(date)
+
+        const monthNames = [
+          'January', 'February', 'March',
+          'April', 'May', 'June', 'July',
+          'August', 'September', 'October',
+          'November', 'December'
+        ]
+
+        const day = dateObj.getDate()
+        const monthIndex = dateObj.getMonth()
+        const year = dateObj.getFullYear()
+
+        return day + ' ' + monthNames[monthIndex] + ' ' + year
+      },
       toggleFormVisibility () {
         this.isFormVisible = !this.isFormVisible
       },
@@ -88,6 +112,7 @@
       async onPostMsg () {
         try {
           this.error = ''
+          this.isSubmitPostDisabled = true
           let res = await fetch(API_URL, {
             method: 'POST',
             headers: {
@@ -109,6 +134,8 @@
           }
         } catch (err) {
           console.err(err)
+        } finally {
+          this.isSubmitPostDisabled = false
         }
       }
     },
@@ -150,5 +177,16 @@
     border-style: solid;
     border-radius: 25px 25px 55px 5px/5px 55px 25px 25px;
     margin: 10px;
+  }
+
+  .username {
+    font-size: 26px;
+    margin-bottom: 0;
+  }
+
+  .subject {
+    font-size: 18px;
+    font-style: italic;
+    margin-bottom: 0;
   }
 </style>
